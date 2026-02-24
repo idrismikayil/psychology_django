@@ -22,7 +22,8 @@ class Option(models.Model):
     value = models.JSONField()  # E.g. {"E": 5, "I":1}
 
     def __str__(self):
-        return f"{self.question.text[:20]} - {self.text}"
+        question_text = self.question.text[:20] if self.question else "NoQuestion"
+        return f"{question_text} - {self.text}"
 
 
 class Answer(models.Model):
@@ -30,7 +31,14 @@ class Answer(models.Model):
     option = models.ForeignKey(Option, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.option.question.text}"
+        try:
+            if self.option and self.option.question:
+                return str(self.option.question.text)
+            elif self.option:
+                return str(self.option.text)
+            return "Empty Object"
+        except Exception:
+            return "Invalid Object"
     
 
 class PersonalityType(models.Model):
