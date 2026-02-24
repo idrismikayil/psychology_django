@@ -22,8 +22,7 @@ class Option(models.Model):
     value = models.JSONField()  # E.g. {"E": 5, "I":1}
 
     def __str__(self):
-        question_text = self.question.text[:20] if self.question else "NoQuestion"
-        return f"{question_text} - {self.text}"
+        return f"Option {self.id}"
 
 
 class Answer(models.Model):
