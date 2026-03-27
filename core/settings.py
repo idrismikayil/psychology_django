@@ -37,6 +37,11 @@ CSRF_TRUSTED_ORIGINS = config(
 
 # CORS
 CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=True, cast=bool)
+CORS_ALLOWED_ORIGINS = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='',
+    cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
+)
 
 # Cookie-lərin frontend ilə işləməsi üçün
 CORS_ALLOW_CREDENTIALS = True
