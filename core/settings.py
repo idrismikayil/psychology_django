@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,17 +21,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+1j-)k8ty37^qmg2l-c8btu$kui3pmpg76w&#v-8-jdl-z&3e_'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-+1j-)k8ty37^qmg2l-c8btu$kui3pmpg76w&#v-8-jdl-z&3e_')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+ENVIRONMENT = config('ENVIRONMENT', default='development')
+DEBUG = config('DEBUG', default=ENVIRONMENT == 'development', cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=lambda v: [s.strip() for s in v.split(',')])
 
-# CSRF üçün hər kəsə icazə (daha riskli)
-CSRF_TRUSTED_ORIGINS = ['http://*', 'https://*']
+# CSRF
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='http://*,https://*',
+    cast=lambda v: [s.strip() for s in v.split(',')]
+)
 
-# CORS üçün hər kəsə icazə
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=True, cast=bool)
 
 # Cookie-lərin frontend ilə işləməsi üçün
 CORS_ALLOW_CREDENTIALS = True
@@ -50,7 +56,8 @@ INSTALLED_APPS = [
     'authApp',
     'drf_yasg',
     "corsheaders",
-    "payments"
+    "payments",
+    "licenses"
 ]
 
 JAZZMIN_SETTINGS = {
@@ -73,7 +80,8 @@ JAZZMIN_SETTINGS = {
         "psychologyApp.Test": "fas fa-vial",
         "psychologyApp.Answer": "fas fa-check-square",
         "psychologyApp.PersonalityType": "fas fa-user",
-        "payments.Payment": "fas fa-credit-card"
+        "payments.Payment": "fas fa-credit-card",
+        "licenses.TestInvitation": "fas fa-paper-plane"
     },
    "hide_apps": ["auth", "admin", "sessions", "authtoken"],  # lazımsız apps
     "hide_models": [
@@ -219,7 +227,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-from decouple import config
+FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:5173")
 
 PAYPAL_MODE=config("PAYPAL_MODE", default="live")
 
@@ -254,4 +262,5 @@ EMAIL_HOST = 'smtp.zoho.eu'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True  # Zoho 587 portu üçün TLS tələb edir
 EMAIL_HOST_USER = 'noreply@octopus.com.az'
+DEFAULT_FROM_EMAIL = 'Octopus <noreply@octopus.com.az>'
 EMAIL_HOST_PASSWORD = 'm9jpU1TkDZjM'

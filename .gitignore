@@ -38,3 +38,4 @@ media/
 
 # Environment variables
 .env
+.env.prod

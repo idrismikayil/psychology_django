@@ -114,14 +114,36 @@ class SimpleTestSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     tests = SimpleTestSerializer(many=True, read_only=True)
+    reserved_test_count = serializers.SerializerMethodField()
+    available_test_count = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'phone_number', 'tests','active_test_count','image']
+        fields = [
+            'id', 'username', 'first_name', 'last_name', 'email',
+            'phone_number', 'tests', 'active_test_count',
+            'reserved_test_count', 'available_test_count', 'image'
+        ]
+
+    def get_reserved_test_count(self, obj):
+        from licenses.models import TestInvitation
+        from django.db.models import Sum
+        return TestInvitation.objects.filter(
+            sender=obj, status='PENDING'
+        ).aggregate(total=Sum('credit_count'))['total'] or 0
+
+    def get_available_test_count(self, obj):
+        from licenses.models import TestInvitation
+        from django.db.models import Sum
+        reserved = TestInvitation.objects.filter(
+            sender=obj, status='PENDING'
+        ).aggregate(total=Sum('credit_count'))['total'] or 0
+        return max(0, obj.active_test_count - reserved)
 
     def get_image(self, obj):
         request = self.context.get('request')
         if obj.image:
-            return request.build_absolute_uri(obj.image.url)  # tam URL yaradılır
+            return request.build_absolute_uri(obj.image.url)
         return None
 
 class PlanListSerializer(serializers.ModelSerializer):

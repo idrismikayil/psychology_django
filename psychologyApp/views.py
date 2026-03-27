@@ -25,11 +25,22 @@ class TestCreateView(APIView):
         serializer = TestCreateSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = request.user
-        if user.active_test_count > 0:
+
+        from licenses.models import TestInvitation
+        from django.db.models import Sum
+        reserved = TestInvitation.objects.filter(
+            sender=user, status='PENDING'
+        ).aggregate(total=Sum('credit_count'))['total'] or 0
+        available = user.active_test_count - reserved
+
+        if available > 0:
             user.active_test_count -= 1
-            user.save() 
+            user.save()
         else:
-            return Response({'message': 'İstifadəçinin hesabında test cəhdi sayı 0-dır'}, status=status.HTTP_201_CREATED)
+            return Response(
+                {'message': 'No available test credits (some may be reserved for invitations).'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         test = serializer.save()
         
         return Response({'test_id': test.id}, status=status.HTTP_201_CREATED)
